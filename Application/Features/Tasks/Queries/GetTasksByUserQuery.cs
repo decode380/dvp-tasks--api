@@ -11,9 +11,7 @@ namespace Application.Features.Tasks.Queries;
 
 public class GetTasksByUserQuery: PaginationProperties, IRequest<PaginationWrapper<List<TaskResponse>>>
 {
-    public int UserId { get; set; }
-    public bool CheckSameUser { get; set; }
-    public string? FromTokenEmail { get; set; }
+    public string FromTokenEmail { get; set; } = default!;
 }
 public class GetTasksByUserQueryHandler : IRequestHandler<GetTasksByUserQuery, PaginationWrapper<List<TaskResponse>>>
 {
@@ -26,20 +24,15 @@ public class GetTasksByUserQueryHandler : IRequestHandler<GetTasksByUserQuery, P
 
     public async Task<PaginationWrapper<List<TaskResponse>>> Handle(GetTasksByUserQuery request, CancellationToken cancellationToken)
     {
-        if (request.CheckSameUser)
-        {
-            var user = 
-                await _context.Users.Where(u => u.Email == request.FromTokenEmail).FirstOrDefaultAsync(cancellationToken)
-                ?? throw new ApiException("User not found");
-            var isSameUser = request.UserId == user.Id;
-            if(!isSameUser) throw new ApiException("User was not authorized");
-        }
+        var userToGet = 
+            await _context.Users.Where(u => u.Email == request.FromTokenEmail).FirstOrDefaultAsync(cancellationToken)
+            ?? throw new ApiException("User not found");
 
         var allTasks = await (
             from task in _context.TaskJobs
                 join user in _context.Users on task.UserId equals user.Id
                 join state in _context.States on task.StateId equals state.Id
-            where task.UserId == request.UserId
+            where task.UserId == userToGet.Id
             select new TaskResponse {
                 Name = task.Name,
                 TaskId = task.Id,
@@ -56,11 +49,12 @@ public class GetTasksByUserQueryHandler : IRequestHandler<GetTasksByUserQuery, P
         )
         .Skip((request.PageNumber - 1) * request.PageSize)
         .Take(request.PageSize)
+        .OrderBy(e => e.Name)
         .ToListAsync(cancellationToken: cancellationToken);
 
         var totalRecords = 
             await _context.TaskJobs
-                .Where(t => t.UserId == request.UserId)
+                .Where(t => t.UserId == userToGet.Id)
                 .CountAsync(cancellationToken);
 
         var response = new PaginationWrapper<List<TaskResponse>> {

@@ -8,6 +8,6 @@ public class GetTasksByUserQueryValidator : AbstractValidator<GetTasksByUserQuer
     {
         RuleFor(p => p.PageNumber).NotEmpty().WithMessage("{PropertyName} was not empty");
         RuleFor(p => p.PageSize).NotEmpty().WithMessage("{PropertyName} was not empty");
-        RuleFor(p => p.UserId).NotEmpty().WithMessage("{PropertyName} was not empty");
+        RuleFor(p => p.FromTokenEmail).NotEmpty().WithMessage("{PropertyName} was not empty");
     }
 }

@@ -9,6 +9,6 @@ public class CreateTaskCommandValidator : AbstractValidator<CreateTaskCommand>
     {
         RuleFor(p => p.Name).NotEmpty().WithMessage("{PropertyName} was not empty");
         RuleFor(p => p.StateId).NotEmpty().WithMessage("{PropertyName} was not empty");
-        RuleFor(p => p.UserId).NotEmpty().WithMessage("{PropertyName} was not empty");
+        RuleFor(p => p.UserEmail).NotEmpty().WithMessage("{PropertyName} was not empty");
     }
 }

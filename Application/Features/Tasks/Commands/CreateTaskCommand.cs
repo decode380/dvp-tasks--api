@@ -11,7 +11,7 @@ namespace Application.Features.Tasks.Commands;
 public class CreateTaskCommand: IRequest<int>
 {
     public string Name { get; set; } = default!;
-    public int UserId { get; set; }
+    public string UserEmail { get; set; } = default!;
     public string StateId { get; set; } = default!;
 }
 
@@ -26,8 +26,9 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, int>
 
     public async Task<int> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
     {
-        var userId = await _context.Users.Where(u => u.Id == request.UserId).Select(u => u.Id).FirstOrDefaultAsync(cancellationToken);
+        var userId = await _context.Users.Where(u => u.Email == request.UserEmail).Select(u => u.Id).FirstOrDefaultAsync(cancellationToken);
         if (userId == 0) throw new ApiException("User not found");
+
         var stateId = await _context.States.Where(s => s.Id == request.StateId).Select(s => s.Id).FirstOrDefaultAsync(cancellationToken)
             ?? throw new ApiException("State not found");
 

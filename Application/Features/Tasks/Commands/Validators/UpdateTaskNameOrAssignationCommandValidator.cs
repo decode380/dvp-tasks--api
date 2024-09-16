@@ -8,7 +8,7 @@ public class UpdateTaskNameOrAssignationCommandValidator: AbstractValidator<Upda
     public UpdateTaskNameOrAssignationCommandValidator()
     {
         RuleFor(p => p.TaskId).NotEmpty().WithMessage("{PropertyName} was not empty");
-        RuleFor(p => p.UserId).NotEmpty().WithMessage("{PropertyName} was not empty");
+        RuleFor(p => p.UserEmail).NotEmpty().WithMessage("{PropertyName} was not empty");
         RuleFor(p => p.Name).NotEmpty().WithMessage("{PropertyName} was not empty");
     }
 }

@@ -33,7 +33,10 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
             ?? throw new ApiException("User not found");
 
         userToEdit.Name = request.Name;
-        userToEdit.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+        if (!(request.Password is null || request.Password == "")) 
+            userToEdit.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
         await _context.SaveChangesAsync();
 
         return new UserResponse{

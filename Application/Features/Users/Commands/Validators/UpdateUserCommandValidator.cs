@@ -12,8 +12,5 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
 
         RuleFor(p => p.Name)
             .NotEmpty().WithMessage("{PropertyName} was not empty");
-
-        RuleFor(p => p.Password)
-            .NotEmpty().WithMessage("{PropertyName} was not empty");
     }
 }

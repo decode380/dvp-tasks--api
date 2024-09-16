@@ -42,6 +42,7 @@ public class GetAllTasksQueryHandler : IRequestHandler<GetAllTasksQuery, Paginat
         )
         .Skip((request.PageNumber - 1) * request.PageSize)
         .Take(request.PageSize)
+        .OrderBy(e => e.Name)
         .ToListAsync(cancellationToken: cancellationToken);
 
         var totalRecords = await _context.TaskJobs.CountAsync(cancellationToken);

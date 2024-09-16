@@ -6,3 +6,7 @@ public class UserResponse {
     public string Email { get; set; } = default!;
     public string Name { get; set; } = default!;
 }
+
+public class UserWithRoleResponse: UserResponse{
+    public RoleResponse Role { get; set; } = default!;
+}

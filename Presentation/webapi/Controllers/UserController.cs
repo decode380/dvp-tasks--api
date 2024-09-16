@@ -25,12 +25,14 @@ namespace Webapi.Controllers
         private readonly ILogger<UserController> _logger;
         private readonly IMediator _mediator;
         private readonly IRoleFeatureService _roleFeatureService;
+        private readonly IJwtService _jwtService;
 
-        public UserController(ILogger<UserController> logger, IMediator mediator, IRoleFeatureService roleFeatureService)
+        public UserController(ILogger<UserController> logger, IMediator mediator, IRoleFeatureService roleFeatureService, IJwtService jwtService)
         {
             _logger = logger;
             _mediator = mediator;
             _roleFeatureService = roleFeatureService;
+            _jwtService = jwtService;
         }
 
 
@@ -42,14 +44,14 @@ namespace Webapi.Controllers
         ///     Require ADMIN role
         ///
         /// </remarks>
-        /// <returns>List of all users in format <see cref="UserResponse"/></returns>
+        /// <returns>List of all users</returns>
         [Authorize]
         [HttpGet]
         [Route("[action]")]
-        [ProducesResponseType(typeof(ResponseWrapper<List<UserResponse>>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ResponseWrapper<List<UserWithRoleResponse>>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetUsers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            if (!await UserHasRole("ADMIN")) return Forbid();
+            if (!await UserHasRole("ADMIN") && !await UserHasRole("SUPERVISOR")) return Forbid();
             var users = await _mediator.Send(new GetAllUsersQuery{
                 PageNumber = pageNumber,
                 PageSize = pageSize
@@ -59,12 +61,39 @@ namespace Webapi.Controllers
 
 
         /// <summary>
+        ///     Get user info by email
+        /// </summary>
+        /// <remarks>
+        /// 
+        ///     Require email on token are the same of the email query
+        ///
+        /// </remarks>
+        /// <returns> The user data </returns>
+        [Authorize]
+        [HttpPost]
+        [Route("[action]")]
+        [ProducesResponseType(typeof(ResponseWrapper<UserWithRoleResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetUserByEmail([FromBody] GetUserByEmailQuery query)
+        {
+            var fromTokenEmail = 
+                _jwtService.GetEmailFromToken(
+                    Request.Headers["Authorization"].ToString()["Bearer ".Length..].Trim()
+                );
+            if (query.Email != fromTokenEmail) return Forbid();
+            var user = await _mediator.Send(query);
+
+            return Ok(user);
+        }
+
+
+        /// <summary>
         ///     Create new user
         /// </summary>
         /// <remarks>
         ///     Require ADMIN role
         /// 
-        ///     Email can be a valid email format
+        ///     Email must be a valid email format
+        ///     RoleId must be a valid role Id
         ///
         ///     All field are required
         /// </remarks>

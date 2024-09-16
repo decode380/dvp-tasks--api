@@ -67,18 +67,14 @@ namespace webapi.Controllers
         ///     - The requestor user from the token are the same of the user assigned id
         /// 
         /// </remarks>
-        /// <param name="userId"></param>
         /// <param name="pageNumber"></param>
         /// <param name="pageSize"></param>
         /// <returns> The task assigned to the user selected from the user id </returns>
         [Authorize]
         [HttpGet]
-        [Route("[action]/{userId}")]
+        [Route("[action]")]
         [ProducesResponseType(typeof(ResponseWrapper<List<TaskResponse>>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetTasksByUser([FromRoute] int userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10) {
-            bool checkSameUser = false;
-            if(!await UserHasRole("ADMIN") && !await UserHasRole("SUPERVISOR")) checkSameUser = true;
-
+        public async Task<IActionResult> GetMyTasks([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10) {
             var fromTokenEmail = 
                 _jwtService.GetEmailFromToken(
                     Request.Headers["Authorization"].ToString()["Bearer ".Length..].Trim()
@@ -87,8 +83,6 @@ namespace webapi.Controllers
             var query = new GetTasksByUserQuery{
                 PageNumber = pageNumber,
                 PageSize = pageSize,
-                CheckSameUser = checkSameUser,
-                UserId = userId,
                 FromTokenEmail = fromTokenEmail
             };
 
@@ -114,7 +108,7 @@ namespace webapi.Controllers
         [Route("[action]")]
         [ProducesResponseType(typeof(ResponseWrapper<int>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> CreateTask([FromBody] CreateTaskCommand command){
-            if(!await UserHasRole("ADMIN")) return Forbid();
+            if(!await UserHasRole("ADMIN") && !await UserHasRole("SUPERVISOR")) return Forbid();
 
             var result = await _mediator.Send(command);
             return Ok(result);

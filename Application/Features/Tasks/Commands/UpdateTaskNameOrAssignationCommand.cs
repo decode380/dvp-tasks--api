@@ -11,7 +11,7 @@ namespace Application.Features.Tasks.Commands;
 public class UpdateTaskNameOrAssignationCommand: IRequest<TaskResponse>
 {
     public int TaskId { get; set; }
-    public int UserId { get; set; }
+    public string UserEmail { get; set; } = default!;
     public string Name { get; set; } = default!;
 }
 
@@ -35,13 +35,11 @@ public class UpdateTaskNameOrAssignationCommandHandler : IRequestHandler<UpdateT
         .FirstOrDefaultAsync(cancellationToken) ?? throw new ApiException("Task not found");
         
         var userToAssign = taskToModify.User;
-        if(taskToModify.UserId != request.UserId) {
-            userToAssign = await _context.Users.FindAsync(request.UserId) ?? throw new ApiException("User not found");
-            taskToModify.UserId = userToAssign.Id;
-        }
+        var newUserToAssign = await _context.Users.Where(u => u.Email == request.UserEmail).FirstOrDefaultAsync(cancellationToken) ?? throw new ApiException("User not found");
+        taskToModify.UserId = newUserToAssign.Id;
 
         taskToModify.Name = request.Name;
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         return new TaskResponse {
             Name = taskToModify.Name,
@@ -51,9 +49,9 @@ public class UpdateTaskNameOrAssignationCommandHandler : IRequestHandler<UpdateT
             },
             TaskId = taskToModify.Id,
             User = new UserResponse {
-                Email = userToAssign.Email,
-                Name = userToAssign.Name,
-                UserId = userToAssign.Id
+                Email = newUserToAssign.Email,
+                Name = newUserToAssign.Name,
+                UserId = newUserToAssign.Id
             }
         };
         

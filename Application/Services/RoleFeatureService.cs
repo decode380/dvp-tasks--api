@@ -31,10 +31,8 @@ public class RoleFeatureService : IRoleFeatureService
 
         var userHasRole = await (
             from user in _context.Users
-                where user.Email == userEmail
-            from userRole in user.Roles
-                where userRole.Id == role
-            select userRole
+                where user.Email == userEmail && user.RoleId == role
+            select user
         ).AnyAsync();
 
         return userHasRole;

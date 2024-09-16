@@ -13,6 +13,7 @@ public class CreateUserCommand: IRequest<int>
     public string Email { get; set; } = default!;
     public string Password { get; set; } = default!;
     public string Name { get; set; } = default!;
+    public string RoleId { get; set; } = default!;
 }
 
 
@@ -37,8 +38,15 @@ public class CreatedUserCommandHandler : IRequestHandler<CreateUserCommand, int>
         User newUser = new(){
             Email = request.Email,
             Password = hashedPassword,
-            Name = request.Name
+            Name = request.Name,
         };
+
+        var roleToAssign = 
+            await _context.Roles
+                .Where(r => r.Id == request.RoleId)
+                .FirstOrDefaultAsync(cancellationToken) ?? throw new ApiException("Role not found");
+
+        newUser.RoleId = roleToAssign.Id;
 
         _context.Users.Add(newUser);
         await _context.SaveChangesAsync(cancellationToken);

@@ -13,7 +13,9 @@ public partial class User
 
     public string Name { get; set; } = null!;
 
-    public virtual ICollection<TaskJob> TaskJobs { get; } = new List<TaskJob>();
+    public string RoleId { get; set; } = null!;
 
-    public virtual ICollection<Role> Roles { get; } = new List<Role>();
+    public virtual Role Role { get; set; } = null!;
+
+    public virtual ICollection<TaskJob> TaskJobs { get; } = new List<TaskJob>();
 }
